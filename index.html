@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pengajuan Usulan Judul & Pembimbing Tesis</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="https://hukum.upnvj.ac.id/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-14-at-13.45.20-1.png">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body { 
+      background: #f7f9fb; 
+      font-family: 'Inter', system-ui, sans-serif; 
+    }
+    .form-section { 
+      padding: 2rem; 
+      background: #fff; 
+      border-radius: 12px; 
+      box-shadow: 0 6px 20px rgba(26,43,73,0.06); 
+    }
+    .required::after { 
+      content: " *"; 
+      color: #d00; 
+    }
+    .logo-upn { 
+      max-width: 100px; 
+      margin-bottom: 15px; 
+    }
+    .step { 
+      display: none; 
+    }
+    .step.active { 
+      display: block; 
+    }
+    
+    /* wizard step */
+    .wizard-steps { 
+      display: flex; 
+      justify-content: center; 
+      margin-bottom: 1.5rem; 
+    }
+    .wizard-step { 
+      text-align: center; 
+      flex: 1; 
+      position: relative; 
+    }
+    .wizard-step .circle {
+      width: 35px; 
+      height: 35px; 
+      border-radius: 50%;
+      display: inline-flex; 
+      align-items: center; 
+      justify-content: center;
+      background: #dee2e6; 
+      color: #6c757d; 
+      font-weight: bold;
+      z-index: 1; 
+      position: relative;
+    }
+    .wizard-step.active .circle, 
+    .wizard-step.completed .circle {
+      background: #0d6efd; 
+      color: #fff;
+    }
+    .wizard-step .label { 
+      margin-top: 0.5rem; 
+      font-size: 0.9rem; 
+    }
+    .wizard-step::after {
+      content: ""; 
+      position: absolute; 
+      top: 17px; 
+      left: 50%; 
+      width: 100%;
+      height: 3px; 
+      background: #dee2e6; 
+      z-index: 0;
+    }
+    .wizard-step:last-child::after { 
+      display: none; 
+    }
+    .wizard-step.completed::after { 
+      background: #0d6efd; 
+    }
+
+    /* Placeholder overrides */
+    .form-section input::placeholder,
+    .form-section textarea::placeholder,
+    .form-section select::placeholder {
+      color: #6c757d !important;
+      opacity: 1 !important;
+    }
+
+    /* Valid & Invalid Feedback */
+    .is-valid {
+      border-color: #198754 !important;
+    }
+
+    .is-invalid {
+      border-color: #dc3545 !important;
+    }
+
+    /* Judul section styling */
+    .judul-section {
+      background: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid #0d6efd;
+      margin-bottom: 1.5rem;
+    }
+
+    .judul-section.optional {
+      border-left-color: #6c757d;
+      background: #fafafa;
+    }
+
+    .judul-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .optional-badge {
+      background: #6c757d;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    .required-badge {
+      background: #dc3545;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    /* Pembimbing section */
+    .pembimbing-section {
+      background: #f0f4ff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid #0d6efd;
+      margin-bottom: 1.5rem;
+    }
+
+    .pembimbing-section h6 {
+      color: #0d6efd;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="py-4 text-center">
+    <img src="https://hukum.upnvj.ac.id/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-14-at-13.45.20-1.png" class="logo-upn" alt="Logo UPNVJ" style="width: 7%;">
+    <h3 style="font-family: roboto;" class="fw-bold mb-2">Pengajuan Usulan Judul & Pembimbing Tesis</h3>
+    <p class="text-muted">Program Studi Hukum Program Magister<br>Fakultas Hukum Universitas Pembangunan Nasional "Veteran" Jakarta</p>
+  </div>
+
+  <div class="container mb-5">
+    <form id="pengajuanForm" class="form-section needs-validation" novalidate>
+
+      <!-- Wizard Steps -->
+      <div class="wizard-steps mb-4">
+        <div class="wizard-step active" id="wizard1">
+          <div class="circle"><i class="bi bi-person"></i></div>
+          <div class="label">Data Mahasiswa</div>
+        </div>
+        <div class="wizard-step" id="wizard2">
+          <div class="circle"><i class="bi bi-journal-text"></i></div>
+          <div class="label">Usulan Judul & Pembimbing</div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mb-4">
+        <div class="progress">
+          <div id="progressBar" class="progress-bar progress-bar-striped bg-info" role="progressbar" style="width: 50%">50% - Data Mahasiswa</div>
+        </div>
+      </div>
+
+      <!-- STEP 1: Data Mahasiswa -->
+      <div class="step active" id="step1">
+        <h5 class="mb-3"><i class="bi bi-person-vcard me-2"></i>Data Mahasiswa</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label required">Nama Lengkap</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
+              <input type="text" name="nama" class="form-control" placeholder="Nama sesuai identitas" required>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <label class="form-label required">NIM</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-card-list"></i></span>
+              <input type="text" name="nim" class="form-control" placeholder="Masukkan NIM (Hanya Angka)" required inputmode="numeric"
+                    pattern="[0-9]*"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            </div>
+          </div>
+
+          <!-- ===== TAMBAHAN KOLOM KONSENTRASI ===== -->
+          <div class="col-md-6">
+            <label class="form-label required">Konsentrasi</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-bookmark"></i></span>
+              <select name="konsentrasi" class="form-select" required>
+                <option value="">-- Pilih Konsentrasi --</option>
+                <option value="Hukum Pidana">Hukum Pidana</option>
+                <option value="Hukum Perdata Bisnis">Hukum Perdata Bisnis</option>
+                <option value="Hukum Kesehatan">Hukum Kesehatan</option>
+                <option value="Hukum Kenegaraan">Hukum Kenegaraan</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-end mt-4">
+          <button type="button" class="btn btn-primary" onclick="nextStep()">
+            Lanjut <i class="bi bi-arrow-right-circle ms-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Judul & Pembimbing -->
+      <div class="step" id="step2">
+        <h5 class="mb-3"><i class="bi bi-journal-bookmark me-2"></i>Usulan Judul & Pembimbing</h5>
+
+        <!-- INFO ALERT: link database judul -->
+        <div class="alert alert-info d-flex align-items-start" role="alert">
+          <i class="bi bi-info-circle-fill me-2" style="font-size:1.2rem;"></i>
+          <div>
+            <strong>Dimohon untuk mengecek database judul terlebih dahulu.</strong>
+            <div class="mt-1">Sebelum mengajukan, Dimohon untuk mengecek terlebih dahulu apakah judul yang akan diajukan sudah ada di database judul atau belum, karena judul tidak boleh sama. <a href="https://hukum.upnvj.ac.id/db-jdl-fh-upnvj/" target="_blank" rel="noopener">Buka Database Judul</a></div>
+          </div>
+        </div>
+        
+        <div class="container my-5" style="font-family:Georgia,'Times New Roman',serif;">
+
+<h3 class="mb-4 fw-bold" style="color:#0b2545;border-bottom:2px solid #c9a227;padding-bottom:10px;">
+Bidang Kepakaran Dosen
+</h3>
+
+<div class="row g-3">
+
+<div class="col-md-6">
+<div class="alert alert-warning">
+<h6 class="fw-bold mb-2">
+<i class="bi bi-bank2 me-2"></i>Hukum Kenegaraan
+</h6>
+<ul class="mb-0">
+<li>Prof. Dr. Wicipto Setiadi, S.H., M.H.</li>
+<li>Prof. Dr. Taufiqurrohman Syahuri, S.H., M.H.</li>
+<li>Dr. Ahmad Ahsin Thohari, S.H., M.H.</li>
+<li>Dr. Muhammad Helmi Fahrozi, S.H.I., S.H., M.H.</li>
+<li>Dr. Irsyaf Marsal, S.H., M.H.</li>
+<li>Dr. Kaharuddin, S.Ag., M.Hum.</li>
+</ul>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="alert alert-warning">
+<h6 class="fw-bold mb-2">
+<i class="bi bi-briefcase-fill me-2"></i>Hukum Perdata Bisnis
+</h6>
+<ul class="mb-0">
+<li>Dr. Atik Winanti, S.H., M.H.</li>
+<li>Dr. Suherman, S.H., LL.M</li>
+<li>Dr. Diani Sadiawati, S.H., LL.M.</li>
+<li>Dr. Wardani Rizkianti, S.H., M.Kn.</li>
+<li>Dr. Andriyanto Adhi Nugroho, S.H., M.H</li>
+<li>Dr. Iwan Erar Joesoef, S.H., Sp.N., M.Kn.</li>
+<li>Dr. Heru Sugiyono, S.H., M.H.</li>
+<li>Dr. Aurora Jillena Meliala, S.H., M.H.</li>
+</ul>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="alert alert-warning">
+<h6 class="fw-bold mb-2">
+<i class="bi bi-heart-pulse me-2"></i>Hukum Perdata Bisnis & Hukum Kesehatan
+</h6>
+<ul class="mb-0">
+<li>Dr. Muthia Sakti, S.H., M.H</li>
+</ul>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="alert alert-warning">
+<h6 class="fw-bold mb-2">
+<i class="bi bi-shield-plus me-2"></i>Hukum Kesehatan & Hukum Pidana
+</h6>
+<ul class="mb-0">
+<li>Dr. Handar Subhandi Bakhtiar, S.H., M.H., M.Tr.Adm.Kes., DipFS.</li>
+</ul>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="alert alert-warning">
+<h6 class="fw-bold mb-2">
+<i class="bi bi-hospital me-2"></i>Hukum Kesehatan
+</h6>
+<ul class="mb-0">
+<li>Dr. dr. Abdul Kolib, M.H.</li>
+</ul>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="alert alert-warning">
+<h6 class="fw-bold mb-2">
+<i class="bi bi-shield-lock me-2"></i>Hukum Pidana
+</h6>
+<ul class="mb-0">
+<li>Prof. Dr. Bambang Waluyo, S.H., M.H.</li>
+<li>Dr. Slamet Tri Wahyudi, S.H., M.H.</li>
+<li>Dr. Beniharmoni Harefa, S.H., LL.M.</li>
+<li>Dr. Supardi, S.H., M.H.</li>
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+        
+        <!-- Dosen Pembimbing Section -->
+        <div class="pembimbing-section mb-4">
+          <h6 class="mb-3"><i class="bi bi-person-badge me-2"></i>Usulan Dosen Pembimbing Tesis</h6>
+          <div class="row g-3">
+            <!-- Pembimbing 1 -->
+            <div class="col-md-6">
+              <label class="form-label required">Usulan Dosen Pembimbing 1</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <select name="pembimbing1" class="form-select" required>
+                  <option value="">-- Pilih Dosen Pembimbing 1 --</option>
+                  <option>Prof. Dr. Bambang Waluyo, S.H., M.H.</option>
+  <option>Prof. Dr. Wicipto Setiadi, S.H., M.H.</option>
+  <option>Prof. Dr. Taufiqurrohman Syahuri, S.H., M.H.</option>
+  <option>Mas Punky Hendra Wijaya, S.H., LL.M., Ph.D.</option>
+  <option>Dr. Ahmad Ahsin Thohari, S.H., M.H.</option>
+  <option>Dr. Muhammad Helmi Fahrozi, S.H.I., S.H., M.H.</option>
+  <option>Dr. Irsyaf Marsal, S.H., M.H.</option>
+  <option>Dr. Diani Sadiawati, S.H., LL.M.</option>
+  <option>Dr. Irwan Triadi, S.H., M.H.</option>
+  <option>Dr. Kaharuddin, S.Ag., M.Hum.</option>
+  <option>Dr. Atik Winanti, S.H., M.H.</option>
+  <option>Dr. Suherman, S.H., LL.M.</option>
+  <option>Dr. Wardani Rizkianti, S.H., M.Kn.</option>
+  <option>Dr. Andriyanto Adhi Nugroho, S.H., M.H.</option>
+  <option>Dr. Iwan Erar Joesoef, S.H., Sp.N., M.Kn.</option>
+  <option>Dr. Heru Sugiyono, S.H., M.H.</option>
+  <option>Dr. Aurora Jillena Meliala, S.H., M.H.</option>
+  <option>Dr. Muthia Sakti, S.H., M.H.</option>
+  <option>Dr. Handar Subhandi Bakhtiar, S.H., M.H., M.Tr.Adm.Kes., DipFS.</option>
+  <option>Dr. dr. Abdul Kolib, M.H.</option>
+  <option>Dr. Slamet Tri Wahyudi, S.H., M.H.</option>
+  <option>Dr. Beniharmoni Harefa, S.H., LL.M.</option>
+  <option>Dr. Supardi, S.H., M.H.</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pembimbing 2 -->
+            <div class="col-md-6">
+              <label class="form-label required">Usulan Dosen Pembimbing 2</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge-fill"></i></span>
+                <select name="pembimbing2" class="form-select" required>
+  <option value="">-- Pilih Dosen Pembimbing 2 --</option>
+  <option>Prof. Dr. Bambang Waluyo, S.H., M.H.</option>
+  <option>Prof. Dr. Wicipto Setiadi, S.H., M.H.</option>
+  <option>Prof. Dr. Taufiqurrohman Syahuri, S.H., M.H.</option>
+  <option>Mas Punky Hendra Wijaya, S.H., LL.M., Ph.D.</option>
+  <option>Dr. Ahmad Ahsin Thohari, S.H., M.H.</option>
+  <option>Dr. Muhammad Helmi Fahrozi, S.H.I., S.H., M.H.</option>
+  <option>Dr. Irsyaf Marsal, S.H., M.H.</option>
+  <option>Dr. Diani Sadiawati, S.H., LL.M.</option>
+  <option>Dr. Irwan Triadi, S.H., M.H.</option>
+  <option>Dr. Kaharuddin, S.Ag., M.Hum.</option>
+  <option>Dr. Atik Winanti, S.H., M.H.</option>
+  <option>Dr. Suherman, S.H., LL.M.</option>
+  <option>Dr. Wardani Rizkianti, S.H., M.Kn.</option>
+  <option>Dr. Andriyanto Adhi Nugroho, S.H., M.H.</option>
+  <option>Dr. Iwan Erar Joesoef, S.H., Sp.N., M.Kn.</option>
+  <option>Dr. Heru Sugiyono, S.H., M.H.</option>
+  <option>Dr. Aurora Jillena Meliala, S.H., M.H.</option>
+  <option>Dr. Muthia Sakti, S.H., M.H.</option>
+  <option>Dr. Handar Subhandi Bakhtiar, S.H., M.H., M.Tr.Adm.Kes., DipFS.</option>
+  <option>Dr. dr. Abdul Kolib, M.H.</option>
+  <option>Dr. Slamet Tri Wahyudi, S.H., M.H.</option>
+  <option>Dr. Beniharmoni Harefa, S.H., LL.M.</option>
+  <option>Dr. Supardi, S.H., M.H.</option>
+</select>
+              </div>
+              <div class="form-text text-muted"><i class="bi bi-info-circle me-1"></i>Pembimbing 1 dan Pembimbing 2 tidak boleh sama.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- JUDUL 1 (WAJIB) -->
+        <div class="judul-section">
+          <div class="judul-header">
+            <h6 class="mb-0"><i class="bi bi-1-circle-fill me-2"></i>Usulan Judul Tesis 1</h6>
+            <span class="required-badge">WAJIB</span>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label required">Usulan Judul Tesis 1</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-journal-text"></i></span>
+              <textarea name="judul1" class="form-control" rows="3" placeholder="Tuliskan judul tesis pertama Anda dengan jelas dan spesifik" required></textarea>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label required">Rumusan Masalah 1 (Judul 1)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-question-circle"></i></span>
+              <textarea name="rumusan1_1" class="form-control" rows="2" placeholder="Rumusan masalah pertama untuk judul 1" required></textarea>
+            </div>
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label required">Rumusan Masalah 2 (Judul 1)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-question-circle"></i></span>
+              <textarea name="rumusan1_2" class="form-control" rows="2" placeholder="Rumusan masalah kedua untuk judul 1" required></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- JUDUL 2 (WAJIB) -->
+        <div class="judul-section">
+          <div class="judul-header">
+            <h6 class="mb-0"><i class="bi bi-2-circle me-2"></i>Usulan Judul Tesis 2</h6>
+            <span class="required-badge">WAJIB</span>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label required">Usulan Judul Tesis 2</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-journal-text"></i></span>
+              <textarea name="judul2" class="form-control" rows="3" placeholder="Tuliskan judul tesis kedua" required></textarea>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label required">Rumusan Masalah 1 (Judul 2)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-question-circle"></i></span>
+              <textarea name="rumusan2_1" class="form-control" rows="2" placeholder="Rumusan masalah pertama untuk judul 2" required></textarea>
+            </div>
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label required">Rumusan Masalah 2 (Judul 2)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-question-circle"></i></span>
+              <textarea name="rumusan2_2" class="form-control" rows="2" placeholder="Rumusan masalah kedua untuk judul 2" required></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- JUDUL 3 (OPTIONAL) -->
+        <div class="judul-section optional">
+          <div class="judul-header">
+            <h6 class="mb-0"><i class="bi bi-3-circle me-2"></i>Usulan Judul Tesis 3</h6>
+            <span class="optional-badge">OPTIONAL</span>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Usulan Judul Tesis 3</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-journal-text"></i></span>
+              <textarea name="judul3" class="form-control" rows="3" placeholder="Tuliskan judul tesis ketiga (opsional)"></textarea>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Rumusan Masalah 1 (Judul 3)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-question-circle"></i></span>
+              <textarea name="rumusan3_1" class="form-control" rows="2" placeholder="Rumusan masalah pertama untuk judul 3 (opsional)"></textarea>
+            </div>
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label">Rumusan Masalah 2 (Judul 3)</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-question-circle"></i></span>
+              <textarea name="rumusan3_2" class="form-control" rows="2" placeholder="Rumusan masalah kedua untuk judul 3 (opsional)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pernyataan -->
+        <div class="form-check mt-4">
+          <input class="form-check-input" type="checkbox" id="pernyataan" required>
+          <label class="form-check-label required" for="pernyataan">
+            Saya menyatakan bahwa Judul yang diajukan tidak ada duplikasi dengan judul penelitian yang ada dalam database.
+          </label>
+        </div>
+        <!-- Pernyataan2 -->
+        <div class="form-check mt-4">
+          <input class="form-check-input" type="checkbox" id="pernyataan2" required>
+          <label class="form-check-label required" for="pernyataan2">
+            Saya menyatakan bahwa Judul yang diajukan ada perbedaan yang mendasar dengan penelitian sebelumnya.
+          </label>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+          <button type="button" class="btn btn-secondary" onclick="prevStep()">
+            <i class="bi bi-arrow-left-circle me-1"></i> Kembali
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send-fill me-1"></i> Kirim Pengajuan
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    // GANTI URL INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRVruXp_kGH1HxF6x8yl4wGkaIQZTBQvJNlI424sMNW8hrdfiK0t_d13wRd0frmqZEpg/exec";
+    const DB_JUDUL_URL = 'https://hukum.upnvj.ac.id/db-jdl-fh-upnvj/';
+
+    let currentStep = 1;
+
+    function updateWizard(step) {
+      document.querySelectorAll('.wizard-step').forEach((w, i) => {
+        w.classList.remove('active', 'completed');
+        if (i + 1 < step) w.classList.add('completed');
+        if (i + 1 === step) w.classList.add('active');
+      });
+      
+      const bar = document.getElementById('progressBar');
+      if (step === 1) {
+        bar.style.width = "50%";
+        bar.textContent = "50% - Data Mahasiswa";
+        bar.classList.remove('bg-success');
+        bar.classList.add('bg-info');
+      } else {
+        bar.style.width = "100%";
+        bar.textContent = "100% - Usulan Judul & Pembimbing";
+        bar.classList.remove('bg-info');
+        bar.classList.add('bg-success');
+      }
+    }
+
+    function showStep(step) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step' + step).classList.add('active');
+      currentStep = step;
+      updateWizard(step);
+    }
+
+    async function nextStep() {
+      const step1Inputs = document.querySelectorAll('#step1 input, #step1 select, #step1 textarea');
+      for (let input of step1Inputs) {
+        if (!input.checkValidity()) {
+          input.reportValidity();
+          return;
+        }
+      }
+
+      // Tampilkan SweetAlert yang meminta user mengecek database judul terlebih dahulu
+      const { value: confirmed } = await Swal.fire({
+        title: 'Sebelum Lanjut',
+        html: `Dimohon untuk mengecek terlebih dahulu apakah judul yang akan diajukan sudah ada di database judul atau belum, karena judul tidak boleh sama.<br><br><a href="${DB_JUDUL_URL}" target="_blank" rel="noopener">Klik di sini untuk membuka Database Judul</a>`,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Sudah, lanjutkan',
+        cancelButtonText: 'Buka Database'
+      });
+
+      if (confirmed) {
+        showStep(2);
+      } else {
+        window.open(DB_JUDUL_URL, '_blank');
+      }
+    }
+
+    function prevStep() {
+      showStep(1);
+    }
+
+    const form = document.getElementById('pengajuanForm');
+
+    // Auto capitalize nama
+    document.querySelector('input[name="nama"]').addEventListener('input', function(e) {
+      this.value = this.value.replace(/\b\w/g, l => l.toUpperCase());
+    });
+
+    // Validasi pembimbing tidak boleh sama
+    function validatePembimbing() {
+      const p1 = document.querySelector('select[name="pembimbing1"]').value;
+      const p2 = document.querySelector('select[name="pembimbing2"]').value;
+      if (p1 && p2 && p1 === p2) {
+        return false;
+      }
+      return true;
+    }
+
+    document.querySelector('select[name="pembimbing2"]').addEventListener('change', function() {
+      const p1 = document.querySelector('select[name="pembimbing1"]').value;
+      if (p1 && this.value && p1 === this.value) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Pembimbing Sama!',
+          text: 'Dosen Pembimbing 1 dan Pembimbing 2 tidak boleh sama. Silakan pilih dosen yang berbeda.',
+          confirmButtonText: 'OK'
+        });
+        this.value = '';
+      }
+    });
+
+    document.querySelector('select[name="pembimbing1"]').addEventListener('change', function() {
+      const p2 = document.querySelector('select[name="pembimbing2"]').value;
+      if (p2 && this.value && p2 === this.value) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Pembimbing Sama!',
+          text: 'Dosen Pembimbing 1 dan Pembimbing 2 tidak boleh sama. Silakan pilih dosen yang berbeda.',
+          confirmButtonText: 'OK'
+        });
+        this.value = '';
+      }
+    });
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+      }
+
+      // Validasi pembimbing tidak sama
+      if (!validatePembimbing()) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Pembimbing Sama!',
+          text: 'Dosen Pembimbing 1 dan Pembimbing 2 tidak boleh sama. Silakan pilih dosen yang berbeda.',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+
+      const nim = document.querySelector('input[name="nim"]').value.trim();
+      
+      Swal.fire({
+        title: 'Memeriksa NIM...',
+        html: `Sedang memvalidasi NIM <strong>${nim}</strong>`,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+      
+      try {
+        const checkData = { action: 'checkNIM', nim: nim };
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(checkData)
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const textResponse = await response.text();
+        const resp = JSON.parse(textResponse);
+        
+        Swal.close();
+        
+        if (resp && resp.status === 'success') {
+          if (resp.exists) {
+            Swal.fire({
+              icon: 'error',
+              title: 'NIM Sudah Terdaftar!',
+              html: `
+                <p>NIM <strong>${nim}</strong> sudah pernah melakukan pengajuan.</p>
+                <p class="text-muted mb-0">Setiap NIM hanya dapat melakukan 1 kali pengajuan.</p>
+                <hr>
+                <p class="text-danger mb-0"><small><i class="bi bi-exclamation-triangle-fill me-1"></i>Silakan gunakan NIM yang berbeda atau hubungi admin jika terjadi kesalahan.</small></p>
+              `,
+              confirmButtonText: 'Mengerti',
+              confirmButtonColor: '#dc3545'
+            });
+            return;
+          } else {
+            Swal.fire({
+              title: 'Konfirmasi Pengajuan',
+              text: 'Pastikan data yang Anda masukkan sudah benar. Lanjutkan pengiriman?',
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonText: 'Ya, kirim',
+              cancelButtonText: 'Batal'
+            }).then(result => {
+              if (result.isConfirmed) sendForm();
+            });
+          }
+        } else {
+          throw new Error('Invalid response format');
+        }
+        
+      } catch (err) {
+        console.error('Error checking NIM:', err);
+        Swal.close();
+        
+        Swal.fire({
+          icon: 'warning',
+          title: 'Tidak Dapat Memeriksa NIM',
+          html: `
+            <p>Terjadi kesalahan saat memeriksa NIM.</p>
+            <p class="text-danger"><small>${err.message}</small></p>
+            <hr>
+            <p class="text-muted mb-0"><small>Kemungkinan masalah koneksi internet atau Apps Script belum ready. Anda bisa mencoba lagi atau lanjutkan pengisian (tanpa validasi duplikasi).</small></p>
+          `,
+          showCancelButton: true,
+          confirmButtonText: 'Coba Lagi',
+          cancelButtonText: 'Batal',
+          confirmButtonColor: '#ffc107'
+        }).then(result => {
+          if (result.isConfirmed) form.dispatchEvent(new Event('submit'));
+        });
+      }
+    });
+
+    async function checkJudulDuplikasi() {
+      const judul1 = document.querySelector('textarea[name="judul1"]').value.trim();
+      const judul2 = document.querySelector('textarea[name="judul2"]').value.trim();
+      const judul3 = document.querySelector('textarea[name="judul3"]').value.trim();
+      
+      if (!judul1) return true;
+      
+      try {
+        const checkData = {
+          action: 'checkJudul',
+          judul1: judul1,
+          judul2: judul2,
+          judul3: judul3
+        };
+        
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(checkData)
+        });
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const textResponse = await response.text();
+        const resp = JSON.parse(textResponse);
+        
+        if (resp && resp.status === 'success') {
+          if (resp.duplicate && resp.matches && resp.matches.length > 0) {
+            let matchesHtml = '';
+            resp.matches.forEach((match) => {
+              let badgeColor = '#428162';
+              const alertClass = match.exactMatch ? 'alert-danger' : 'alert-warning';
+              const matchType = match.exactMatch ? '⚠️ DUPLIKAT 100%' : '⚠️ MIRIP';
+              
+              matchesHtml += `
+                <div class="alert ${alertClass} text-start mb-3" style="border-left: 4px solid ${badgeColor};">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong>${matchType}</strong>
+                    <span class="badge" style="background-color: ${badgeColor}; font-size: 0.75rem;">${match.judulType}</span>
+                  </div>
+                  <hr style="margin: 0.5rem 0;">
+                  <small><strong>Judul Anda:</strong></small><br>
+                  <small class="text-dark">"${match.inputJudul}"</small><br><br>
+                  <small><strong>Judul yang Sudah Ada:</strong></small><br>
+                  <small class="text-dark">"${match.existingJudul}"</small><br><br>
+                  <small><strong>Tingkat Kemiripan:</strong> <span class="badge bg-dark">${match.similarity}%</span></small>
+                </div>
+              `;
+            });
+            
+            await Swal.fire({
+              icon: 'error',
+              title: 'Judul Terdeteksi Duplikasi!',
+              html: `
+                <div class="text-start">
+                  <p class="mb-3 text-center">Sistem mendeteksi <strong>${resp.matches.length}</strong> judul yang Anda masukkan mirip atau sama dengan judul yang sudah ada di database.</p>
+                  ${matchesHtml}
+                </div>
+                <hr>
+                <p class="text-muted mb-0 text-center"><small>Silakan ubah judul yang terdeteksi duplikat.</small></p>
+                <p class="text-info mt-2 mb-0 text-center"><small><a href="${DB_JUDUL_URL}" target="_blank">Buka Database Judul Lengkap</a></small></p>
+              `,
+              confirmButtonText: 'Ubah Judul',
+              confirmButtonColor: '#dc3545',
+              allowOutsideClick: false,
+              width: '700px'
+            });
+            
+            return false;
+          }
+          return true;
+        } else {
+          throw new Error(resp.message || 'Invalid response');
+        }
+        
+      } catch (err) {
+        console.error('Error checking judul:', err);
+        
+        const result = await Swal.fire({
+          icon: 'warning',
+          title: 'Tidak Dapat Memeriksa Duplikasi Judul',
+          html: `<p>Terjadi kesalahan saat memeriksa duplikasi judul.</p><p class="text-danger"><small>${err.message}</small></p>`,
+          showCancelButton: true,
+          confirmButtonText: 'Lanjutkan Tanpa Cek',
+          cancelButtonText: 'Coba Lagi',
+          confirmButtonColor: '#ffc107'
+        });
+        
+        return result.isConfirmed;
+      }
+    }
+
+    async function sendForm() {
+      const formData = new FormData(form);
+      
+      // ===== PERBARUI OBJEK DATA DENGAN MENYERTAKAN KONSENTRASI =====
+      const data = {
+        action: 'submit',
+        nama: formData.get('nama').trim(),
+        nim: formData.get('nim').trim(),
+        konsentrasi: formData.get('konsentrasi'), // <-- TAMBAHKAN INI
+        pembimbing1: formData.get('pembimbing1'),
+        pembimbing2: formData.get('pembimbing2'),
+        judul1: formData.get('judul1').trim(),
+        rumusan1_1: formData.get('rumusan1_1').trim(),
+        rumusan1_2: formData.get('rumusan1_2').trim(),
+        judul2: formData.get('judul2') ? formData.get('judul2').trim() : '',
+        rumusan2_1: formData.get('rumusan2_1') ? formData.get('rumusan2_1').trim() : '',
+        rumusan2_2: formData.get('rumusan2_2') ? formData.get('rumusan2_2').trim() : '',
+        judul3: formData.get('judul3') ? formData.get('judul3').trim() : '',
+        rumusan3_1: formData.get('rumusan3_1') ? formData.get('rumusan3_1').trim() : '',
+        rumusan3_2: formData.get('rumusan3_2') ? formData.get('rumusan3_2').trim() : ''
+      };
+
+      // ===== PERBARUI VALIDASI DATA LENGKAP =====
+      if (!data.nim || !data.nama || !data.konsentrasi || !data.pembimbing1 || !data.pembimbing2 || !data.judul1 || !data.rumusan1_1 || !data.rumusan1_2) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Data Tidak Lengkap',
+          text: 'Mohon lengkapi semua field yang wajib diisi (Nama, NIM, Konsentrasi, Pembimbing 1, Pembimbing 2, Judul 1 dan rumusan masalahnya)!'
+        });
+        return;
+      }
+
+      // Cek duplikasi judul
+      Swal.fire({
+        title: 'Memeriksa Duplikasi Judul...',
+        html: 'Mohon tunggu, sistem sedang memeriksa apakah judul Anda sudah ada di database...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+      
+      const judulValid = await checkJudulDuplikasi();
+      Swal.close();
+      
+      if (!judulValid) return;
+
+      Swal.fire({
+        title: 'Mengirim Data...',
+        html: 'Mohon tunggu, sistem sedang memproses pengajuan Anda...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const textResponse = await response.text();
+        let resp;
+        try {
+          resp = JSON.parse(textResponse);
+        } catch (parseError) {
+          throw new Error('Invalid JSON response from server');
+        }
+        
+        Swal.close();
+
+        if (resp && resp.status === 'success') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Pengajuan Berhasil!',
+            html: `
+              <p>Data Anda berhasil dikirim dan tersimpan.</p>
+              <hr>
+              <div class="text-start">
+                <p class="mb-1"><strong>Nama:</strong> ${data.nama}</p>
+                <p class="mb-1"><strong>NIM:</strong> ${data.nim}</p>
+                <p class="mb-1"><strong>Konsentrasi:</strong> ${data.konsentrasi}</p> <!-- TAMBAHKAN INI -->
+                <p class="mb-1"><strong>Pembimbing 1:</strong> ${data.pembimbing1}</p>
+                <p class="mb-1"><strong>Pembimbing 2:</strong> ${data.pembimbing2}</p>
+              </div>
+              <hr>
+              <a href="https://hukum.upnvj.ac.id/dashboard-pengajuan-judul-pembimbing-tesis/" class="btn btn-primary mt-2">
+                <i class="bi bi-speedometer2 me-1"></i> Lihat Dashboard Disini
+              </a>
+            `,
+            showCloseButton: true,
+            showConfirmButton: false,
+            allowOutsideClick: false
+          });
+
+          form.reset();
+          form.classList.remove('was-validated');
+          
+          const allInputs = form.querySelectorAll('input, select, textarea');
+          allInputs.forEach(input => {
+            input.classList.remove('is-valid', 'is-invalid');
+            input.setCustomValidity('');
+          });
+          
+          showStep(1);
+          
+        } else if (resp && resp.status === 'error') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Pengajuan Gagal',
+            html: `<p>${resp.message}</p><hr><p class="text-muted mb-0"><small>Jika masalah berlanjut, silakan hubungi admin.</small></p>`,
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#dc3545'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Response Tidak Valid',
+            html: `<p>Server mengirim response yang tidak sesuai format.</p>`,
+            confirmButtonText: 'OK'
+          });
+        }
+        
+      } catch (err) {
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal Mengirim Data',
+          html: `
+            <p><strong>Error:</strong> ${err.message}</p>
+            <hr>
+            <ul class="text-start text-muted" style="font-size: 0.9rem;">
+              <li>Koneksi internet bermasalah</li>
+              <li>URL Google Apps Script tidak valid</li>
+              <li>Apps Script belum di-deploy dengan benar</li>
+              <li>Permission Apps Script belum diatur</li>
+            </ul>
+          `,
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#ffc107'
+        });
+      }
+    }
+  </script>
+</body>
+</html>
